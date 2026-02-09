@@ -10,7 +10,8 @@ import {
   Text,
   UnstyledButton,
 } from '@mantine/core'
-import { useDisclosure, useLocalStorage } from '@mantine/hooks'
+import { useDisclosure, useLocalStorage, useMediaQuery } from '@mantine/hooks'
+import { useEffect, useRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { logout, selectAuthUser } from '../../store/slices/authSlice'
@@ -33,6 +34,15 @@ export function AppLayout() {
     key: 'erp-sidebar-collapsed',
     defaultValue: false,
   })
+  const shouldAutoCollapseSidebar = useMediaQuery('(max-width: 64em)')
+  const wasSmallScreenRef = useRef(false)
+
+  useEffect(() => {
+    if (shouldAutoCollapseSidebar && !wasSmallScreenRef.current) {
+      setSidebarCollapsed(true)
+    }
+    wasSmallScreenRef.current = shouldAutoCollapseSidebar
+  }, [setSidebarCollapsed, shouldAutoCollapseSidebar])
 
   const handleLogout = () => {
     dispatch(logout())
@@ -45,14 +55,17 @@ export function AppLayout() {
       navbar={{
         width: 272,
         breakpoint: 'sm',
-        collapsed: { mobile: !mobileOpened, desktop: sidebarCollapsed },
+        collapsed: {
+          mobile: !mobileOpened,
+          desktop: sidebarCollapsed,
+        },
       }}
       padding="md"
       withBorder
     >
       <AppShell.Header>
-        <Group h="100%" justify="space-between" px="md">
-          <Group>
+        <Group h="100%" justify="space-between" px="md" wrap="nowrap" gap="xs">
+          <Group wrap="nowrap" gap="xs" style={{ flex: 1, minWidth: 0 }}>
             <Burger
               opened={mobileOpened}
               onClick={toggleMobile}
@@ -68,9 +81,11 @@ export function AppLayout() {
             >
               <Text fw={700}>{sidebarCollapsed ? '>' : '<'}</Text>
             </ActionIcon>
-            <Stack gap={0}>
-              <Text fw={700}>{env.appName}</Text>
-              <Text fz="xs" c="dimmed">
+            <Stack gap={0} style={{ minWidth: 0 }}>
+              <Text fw={700} truncate>
+                {env.appName}
+              </Text>
+              <Text fz="xs" c="dimmed" truncate>
                 {activeOrganization?.name ?? 'No organization selected'}
               </Text>
             </Stack>
@@ -79,11 +94,11 @@ export function AppLayout() {
           <Menu width={220} position="bottom-end">
             <Menu.Target>
               <UnstyledButton aria-label="Open user menu">
-                <Group gap="xs">
+                <Group gap="xs" wrap="nowrap">
                   <Avatar color="teal" radius="xl">
                     U{user?.id ?? ''}
                   </Avatar>
-                  <Stack gap={0}>
+                  <Stack gap={0} visibleFrom="md">
                     <Text size="sm" fw={600}>
                       User {user?.id ?? '-'}
                     </Text>
@@ -121,7 +136,7 @@ export function AppLayout() {
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main>
+      <AppShell.Main style={{ overflowX: 'hidden' }}>
         <Outlet />
       </AppShell.Main>
     </AppShell>

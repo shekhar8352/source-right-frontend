@@ -20,9 +20,11 @@ export function OrganizationPage() {
         <List spacing="sm">
           {organizations.map((organization) => (
             <List.Item key={organization.id}>
-              <Group justify="space-between">
-                <Group gap="sm">
-                  <Text fw={500}>{organization.name}</Text>
+              <Group justify="space-between" wrap="wrap" gap="xs">
+                <Group gap="sm" style={{ flex: 1, minWidth: 0 }}>
+                  <Text fw={500} truncate>
+                    {organization.name}
+                  </Text>
                   {activeOrganization === organization.id ? (
                     <Badge variant="light" color="teal">
                       Active

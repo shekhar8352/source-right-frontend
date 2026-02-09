@@ -77,22 +77,41 @@ export function UsersPage() {
       {isLoading ? (
         <Loader />
       ) : (
-        <Table striped highlightOnHover withTableBorder>
+        <Table
+          striped
+          highlightOnHover
+          withTableBorder
+          style={{ width: '100%', tableLayout: 'fixed' }}
+        >
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Email</Table.Th>
-              <Table.Th>Role</Table.Th>
-              <Table.Th>Status</Table.Th>
+              <Table.Th w="24%">Name</Table.Th>
+              <Table.Th w="36%">Email</Table.Th>
+              <Table.Th w="20%">Role</Table.Th>
+              <Table.Th w="20%">Status</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {users.map((user) => (
               <Table.Tr key={user.id}>
-                <Table.Td>{user.name}</Table.Td>
-                <Table.Td>{user.email}</Table.Td>
-                <Table.Td>{user.role}</Table.Td>
-                <Table.Td>{user.status}</Table.Td>
+                <Table.Td>
+                  <Text size="sm" truncate>
+                    {user.name}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm" style={{ overflowWrap: 'anywhere' }}>
+                    {user.email}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm" style={{ overflowWrap: 'anywhere' }}>
+                    {user.role}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">{user.status}</Text>
+                </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>

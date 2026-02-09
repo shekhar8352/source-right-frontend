@@ -11,7 +11,7 @@ export function DashboardPage() {
   return (
     <Stack gap="lg">
       <Stack gap={4}>
-        <Group justify="space-between">
+        <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
           <Title order={2}>Dashboard</Title>
           <Badge variant="light" size="lg">
             Tenant: {tenantId ?? 'Not selected'}

@@ -80,7 +80,7 @@ export function LoginPage() {
 
   return (
     <Stack align="center" justify="center" mih="100vh" p="md">
-      <Paper radius="md" p="xl" withBorder miw={360}>
+      <Paper radius="md" p="xl" withBorder w="100%" maw={420}>
         <FormikProvider value={formik}>
           <form onSubmit={formik.handleSubmit}>
             <Stack>
