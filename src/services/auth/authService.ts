@@ -6,6 +6,7 @@ export const authService = {
   login: (payload: LoginPayload) =>
     httpClient.request<LoginResponse>(API_ENDPOINTS.auth.login, {
       method: 'POST',
-      body: payload,
+      // Send both keys to support APIs that still expect `username` while UI uses email.
+      body: { email: payload.email, username: payload.email, password: payload.password },
     }),
 }

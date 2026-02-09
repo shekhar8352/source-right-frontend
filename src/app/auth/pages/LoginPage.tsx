@@ -9,13 +9,38 @@ import { loginSuccess, selectIsAuthenticated } from '../../../store/slices/authS
 import { setActiveOrganization, setOrganizations } from '../../../store/slices/orgSlice'
 
 interface LoginFormValues {
-  username: string
+  email: string
   password: string
 }
 
 const getOrganizationName = (orgId: string) => {
   const suffix = orgId.split('_').at(-1)?.slice(0, 6).toUpperCase() ?? 'ERP'
   return `Organization ${suffix}`
+}
+
+const getLoginErrorMessage = (error: unknown) => {
+  const rawMessage =
+    error instanceof Error ? error.message : 'Unable to login. Please try again later.'
+  const normalizedMessage = rawMessage.toLowerCase()
+
+  if (
+    normalizedMessage.includes('inactive') ||
+    normalizedMessage.includes('disabled') ||
+    normalizedMessage.includes('deactivated')
+  ) {
+    return 'Inactive user. Please contact your administrator.'
+  }
+
+  if (
+    normalizedMessage.includes('invalid') ||
+    normalizedMessage.includes('unauthorized') ||
+    normalizedMessage.includes('incorrect') ||
+    normalizedMessage.includes('401')
+  ) {
+    return 'Invalid credentials. Please check your email and password.'
+  }
+
+  return rawMessage
 }
 
 export function LoginPage() {
@@ -26,14 +51,14 @@ export function LoginPage() {
 
   const formik = useFormik<LoginFormValues>({
     initialValues: {
-      username: '',
+      email: '',
       password: '',
     },
     validate: (values) => {
       const errors: Partial<Record<keyof LoginFormValues, string>> = {}
 
-      if (!values.username.trim()) {
-        errors.username = 'Username is required'
+      if (!values.email.trim()) {
+        errors.email = 'Email is required'
       }
 
       if (!values.password.trim()) {
@@ -45,7 +70,7 @@ export function LoginPage() {
     onSubmit: async (values, helpers) => {
       try {
         const response = await authApi.login({
-          username: values.username.trim(),
+          email: values.email.trim(),
           password: values.password,
         })
 
@@ -63,16 +88,14 @@ export function LoginPage() {
         navigate('/dashboard', { replace: true })
       } catch (error) {
         helpers.setStatus({
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Unable to login. Please check your credentials.',
+          error: getLoginErrorMessage(error),
         })
       } finally {
         helpers.setSubmitting(false)
       }
     },
   })
+  const isLoginDisabled = !formik.values.email.trim() || !formik.values.password.trim()
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />
@@ -97,10 +120,20 @@ export function LoginPage() {
                 </Alert>
               ) : null}
 
-              <FormikTextInput name="username" label="Username" placeholder="shekhar8352" />
+              <FormikTextInput
+                name="email"
+                type="email"
+                label="Email"
+                placeholder="you@organization.com"
+              />
               <FormikPasswordInput name="password" label="Password" placeholder="••••••••" />
 
-              <Button type="submit" fullWidth loading={formik.isSubmitting}>
+              <Button
+                type="submit"
+                fullWidth
+                loading={formik.isSubmitting}
+                disabled={formik.isSubmitting || isLoginDisabled}
+              >
                 Sign in
               </Button>
             </Stack>
