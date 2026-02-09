@@ -1,3 +1,5 @@
+import { env } from '../../config/env'
+
 export interface RequestContext {
   token?: string
   tenantId?: string | null
@@ -12,7 +14,7 @@ export interface RequestConfig {
 class HttpClient {
   private readonly baseUrl: string
 
-  constructor(baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api') {
+  constructor(baseUrl = env.apiBaseUrl) {
     this.baseUrl = baseUrl
   }
 

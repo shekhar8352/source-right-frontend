@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAppDispatch } from '../../store/hooks'
 import { logout } from '../../store/slices/authSlice'
 import { clearOrganizations } from '../../store/slices/orgSlice'
+import { env } from '../../config/env'
 
 const navItems = [
   { label: 'Dashboard', to: '/dashboard' },
@@ -29,7 +30,7 @@ export function AppLayout() {
       <AppShell.Header>
         <Group h="100%" justify="space-between" px="md">
           <Stack gap={0}>
-            <Text fw={700}>Source Right ERP</Text>
+            <Text fw={700}>{env.appName}</Text>
             <Text fz="xs" c="dimmed">
               Multi-tenant control center
             </Text>
