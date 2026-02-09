@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from '../api/endpoints'
 import { httpClient } from '../api/httpClient'
-import type { AuthUser, LoginPayload, LoginResponse } from '../../types/auth'
+import type { LoginPayload, LoginResponse } from '../../types/auth'
 
 export const authService = {
   login: (payload: LoginPayload) =>
@@ -8,7 +8,4 @@ export const authService = {
       method: 'POST',
       body: payload,
     }),
-
-  getCurrentSession: (token: string) =>
-    httpClient.request<AuthUser>(API_ENDPOINTS.auth.me, {}, { token }),
 }

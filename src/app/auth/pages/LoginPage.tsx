@@ -1,32 +1,39 @@
-import { Button, Paper, Stack, Text, Title } from '@mantine/core'
+import { Alert, Button, Paper, Stack, Text, Title } from '@mantine/core'
 import { FormikProvider, useFormik } from 'formik'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { FormikPasswordInput } from '../../../components/forms/FormikPasswordInput'
 import { FormikTextInput } from '../../../components/forms/FormikTextInput'
-import { useAppDispatch } from '../../../store/hooks'
-import { loginSuccess } from '../../../store/slices/authSlice'
+import { useApi } from '../../../hooks/useApi'
+import { useAppDispatch, useAppSelector } from '../../../store/hooks'
+import { loginSuccess, selectIsAuthenticated } from '../../../store/slices/authSlice'
 import { setActiveOrganization, setOrganizations } from '../../../store/slices/orgSlice'
-import type { UserRole } from '../../../types/auth'
 
 interface LoginFormValues {
-  email: string
+  username: string
   password: string
+}
+
+const getOrganizationName = (orgId: string) => {
+  const suffix = orgId.split('_').at(-1)?.slice(0, 6).toUpperCase() ?? 'ERP'
+  return `Organization ${suffix}`
 }
 
 export function LoginPage() {
   const dispatch = useAppDispatch()
+  const { authApi } = useApi()
   const navigate = useNavigate()
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
 
   const formik = useFormik<LoginFormValues>({
     initialValues: {
-      email: '',
+      username: '',
       password: '',
     },
     validate: (values) => {
       const errors: Partial<Record<keyof LoginFormValues, string>> = {}
 
-      if (!values.email.trim()) {
-        errors.email = 'Email is required'
+      if (!values.username.trim()) {
+        errors.username = 'Username is required'
       }
 
       if (!values.password.trim()) {
@@ -35,37 +42,41 @@ export function LoginPage() {
 
       return errors
     },
-    onSubmit: (values, helpers) => {
-      const normalizedEmail = values.email.trim().toLowerCase()
-      const tenantKey = normalizedEmail.split('@')[1]?.split('.')[0] ?? 'global'
-      const role: UserRole = normalizedEmail.startsWith('admin') ? 'ORG_ADMIN' : 'EMPLOYEE'
-      const activeOrganizationId = `${tenantKey}-hq`
+    onSubmit: async (values, helpers) => {
+      try {
+        const response = await authApi.login({
+          username: values.username.trim(),
+          password: values.password,
+        })
 
-      dispatch(
-        loginSuccess({
-          token: `demo-${Date.now()}`,
-          user: {
-            id: 'u-demo',
-            name: normalizedEmail.split('@')[0] ?? 'ERP User',
-            email: normalizedEmail,
-            roles: [role],
-            orgId: activeOrganizationId,
-          },
-        }),
-      )
+        dispatch(loginSuccess(response))
+        dispatch(
+          setOrganizations([
+            {
+              id: response.org_id,
+              name: getOrganizationName(response.org_id),
+            },
+          ]),
+        )
+        dispatch(setActiveOrganization(response.org_id))
 
-      dispatch(
-        setOrganizations([
-          { id: activeOrganizationId, name: `${tenantKey.toUpperCase()} HQ` },
-          { id: `${tenantKey}-ops`, name: `${tenantKey.toUpperCase()} Operations` },
-        ]),
-      )
-      dispatch(setActiveOrganization(activeOrganizationId))
-
-      helpers.setSubmitting(false)
-      navigate('/dashboard', { replace: true })
+        navigate('/dashboard', { replace: true })
+      } catch (error) {
+        helpers.setStatus({
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Unable to login. Please check your credentials.',
+        })
+      } finally {
+        helpers.setSubmitting(false)
+      }
     },
   })
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   return (
     <Stack align="center" justify="center" mih="100vh" p="md">
@@ -76,11 +87,17 @@ export function LoginPage() {
               <Stack gap={0}>
                 <Title order={2}>ERP Login</Title>
                 <Text c="dimmed" fz="sm">
-                  Use any email. Prefix with `admin` to test admin routes.
+                  Sign in with your organization credentials.
                 </Text>
               </Stack>
 
-              <FormikTextInput name="email" label="Work email" placeholder="admin@tenant.com" />
+              {formik.status?.error ? (
+                <Alert color="red" title="Login failed">
+                  {formik.status.error}
+                </Alert>
+              ) : null}
+
+              <FormikTextInput name="username" label="Username" placeholder="shekhar8352" />
               <FormikPasswordInput name="password" label="Password" placeholder="••••••••" />
 
               <Button type="submit" fullWidth loading={formik.isSubmitting}>

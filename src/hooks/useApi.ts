@@ -14,15 +14,8 @@ export function useApi() {
   const authApi = useMemo(
     () => ({
       login: (payload: LoginPayload) => authService.login(payload),
-      getCurrentSession: () => {
-        if (!token) {
-          throw new Error('Token is missing')
-        }
-
-        return authService.getCurrentSession(token)
-      },
     }),
-    [token],
+    [],
   )
 
   const orgApi = useMemo(

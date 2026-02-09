@@ -1,11 +1,15 @@
-export type UserRole = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'MANAGER' | 'EMPLOYEE'
+export type UserRole = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'MANAGER' | 'EMPLOYEE' | string
 
 export interface AuthUser {
-  id: string
-  name: string
-  email: string
-  roles: UserRole[]
+  id: number
   orgId: string
+  role: UserRole
+  username?: string
+}
+
+export interface AuthSession {
+  token: string
+  user: AuthUser
 }
 
 export interface AuthState {
@@ -15,11 +19,13 @@ export interface AuthState {
 }
 
 export interface LoginPayload {
-  email: string
+  username: string
   password: string
 }
 
 export interface LoginResponse {
   token: string
-  user: AuthUser
+  user_id: number
+  org_id: string
+  role: UserRole
 }

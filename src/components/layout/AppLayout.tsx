@@ -1,8 +1,20 @@
-import { AppShell, Button, Group, NavLink, Stack, Text } from '@mantine/core'
+import {
+  ActionIcon,
+  AppShell,
+  Avatar,
+  Burger,
+  Group,
+  Menu,
+  NavLink,
+  Stack,
+  Text,
+  UnstyledButton,
+} from '@mantine/core'
+import { useDisclosure, useLocalStorage } from '@mantine/hooks'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { useAppDispatch } from '../../store/hooks'
-import { logout } from '../../store/slices/authSlice'
-import { clearOrganizations } from '../../store/slices/orgSlice'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { logout, selectAuthUser } from '../../store/slices/authSlice'
+import { clearOrganizations, selectActiveOrganizationEntity } from '../../store/slices/orgSlice'
 import { env } from '../../config/env'
 
 const navItems = [
@@ -14,6 +26,13 @@ const navItems = [
 export function AppLayout() {
   const location = useLocation()
   const dispatch = useAppDispatch()
+  const user = useAppSelector(selectAuthUser)
+  const activeOrganization = useAppSelector(selectActiveOrganizationEntity)
+  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage<boolean>({
+    key: 'erp-sidebar-collapsed',
+    defaultValue: false,
+  })
 
   const handleLogout = () => {
     dispatch(logout())
@@ -23,21 +42,67 @@ export function AppLayout() {
   return (
     <AppShell
       header={{ height: 64 }}
-      navbar={{ width: 260, breakpoint: 'sm' }}
+      navbar={{
+        width: 272,
+        breakpoint: 'sm',
+        collapsed: { mobile: !mobileOpened, desktop: sidebarCollapsed },
+      }}
       padding="md"
       withBorder
     >
       <AppShell.Header>
         <Group h="100%" justify="space-between" px="md">
-          <Stack gap={0}>
-            <Text fw={700}>{env.appName}</Text>
-            <Text fz="xs" c="dimmed">
-              Multi-tenant control center
-            </Text>
-          </Stack>
-          <Button size="xs" variant="light" color="red" onClick={handleLogout}>
-            Logout
-          </Button>
+          <Group>
+            <Burger
+              opened={mobileOpened}
+              onClick={toggleMobile}
+              hiddenFrom="sm"
+              size="sm"
+              aria-label="Toggle sidebar"
+            />
+            <ActionIcon
+              variant="subtle"
+              visibleFrom="sm"
+              aria-label="Collapse sidebar"
+              onClick={() => setSidebarCollapsed((currentValue) => !currentValue)}
+            >
+              <Text fw={700}>{sidebarCollapsed ? '>' : '<'}</Text>
+            </ActionIcon>
+            <Stack gap={0}>
+              <Text fw={700}>{env.appName}</Text>
+              <Text fz="xs" c="dimmed">
+                {activeOrganization?.name ?? 'No organization selected'}
+              </Text>
+            </Stack>
+          </Group>
+
+          <Menu width={220} position="bottom-end">
+            <Menu.Target>
+              <UnstyledButton aria-label="Open user menu">
+                <Group gap="xs">
+                  <Avatar color="teal" radius="xl">
+                    U{user?.id ?? ''}
+                  </Avatar>
+                  <Stack gap={0}>
+                    <Text size="sm" fw={600}>
+                      User {user?.id ?? '-'}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {user?.role ?? 'Unknown role'}
+                    </Text>
+                  </Stack>
+                </Group>
+              </UnstyledButton>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Menu.Label>Account</Menu.Label>
+              <Menu.Item disabled>Org: {activeOrganization?.id ?? 'N/A'}</Menu.Item>
+              <Menu.Item color="red" onClick={handleLogout}>
+                Logout
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </AppShell.Header>
 
@@ -50,6 +115,7 @@ export function AppLayout() {
               component={Link}
               to={item.to}
               active={location.pathname.startsWith(item.to)}
+              onClick={closeMobile}
             />
           ))}
         </Stack>

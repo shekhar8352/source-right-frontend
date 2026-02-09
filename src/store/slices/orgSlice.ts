@@ -25,5 +25,8 @@ export const { setOrganizations, setActiveOrganization, clearOrganizations } = o
 
 export const selectOrganizations = (state: RootState) => state.org.organizations
 export const selectActiveOrganization = (state: RootState) => state.org.activeOrganizationId
+export const selectActiveOrganizationEntity = (state: RootState) =>
+  state.org.organizations.find((organization) => organization.id === state.org.activeOrganizationId) ??
+  null
 
 export default orgSlice.reducer

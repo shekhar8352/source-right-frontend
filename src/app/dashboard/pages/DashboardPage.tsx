@@ -18,7 +18,7 @@ export function DashboardPage() {
           </Badge>
         </Group>
         <Text c="dimmed">
-          Welcome {user?.name ?? 'user'}. This layout is ready for tenant-scoped ERP modules.
+          Welcome User {user?.id ?? '-'}. This layout is ready for tenant-scoped ERP modules.
         </Text>
       </Stack>
 
